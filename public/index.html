@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>自动化搜索报告 (SSE)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    #log, #report { white-space: pre-wrap; border:1px solid #ccc; padding:1em; margin-top:1em; height:200px; overflow:auto; }
+    input, button { padding: .5em; margin-right: .5em; }
+  </style>
+</head>
+<body>
+  <h1>自动化搜索报告 (实时日志)</h1>
+  <form id="form">
+    <input id="query" placeholder="输入关键词" required>
+    <button>开始</button>
+  </form>
+  <div id="log"></div>
+  <h2>📋 报告</h2>
+  <div id="report"></div>
+
+  <script>
+    const form = document.getElementById('form');
+    const logDiv = document.getElementById('log');
+    const reportDiv = document.getElementById('report');
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      logDiv.textContent = '';
+      reportDiv.textContent = '';
+      const q = document.getElementById('query').value;
+      const es = new EventSource(`/api/search/stream?query=${encodeURIComponent(q)}`);
+
+      es.onmessage = ev => {
+        const data = JSON.parse(ev.data);
+        if (data.error) {
+          logDiv.textContent += `❌ 错误: ${data.error}\n`;
+          es.close();
+        } else if (data.step) {
+          logDiv.textContent += data.step + '\n';
+          logDiv.scrollTop = logDiv.scrollHeight;
+        } else if (data.done) {
+          reportDiv.textContent = data.report;
+          es.close();
+        }
+      };
+
+      es.onerror = () => {
+        logDiv.textContent += '❌ 与服务器连接断开\n';
+        es.close();
+      };
+    });
+  </script>
+</body>
+</html>
+
