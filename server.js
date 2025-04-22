@@ -5,7 +5,7 @@ import OpenAI    from 'openai';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
-puppeteer.use(StealthPlugin());  // ← 正确加载 stealth 插件
+puppeteer.use(StealthPlugin());  // 加载 stealth 插件
 
 const app = express();
 app.use(express.json());
@@ -36,7 +36,7 @@ async function initBrowser() {
 // 核心流程，progress 用于 SSE 推送日志
 async function runSearchReport(query, progress) {
   await initBrowser();
-  progress({ step: '✅ 已连接到现有 Chrome' });
+  progress({ step: ' 已连接到现有 Chrome' });
 
   const functions = [
     { name:'navigate', description:'Go to a URL',
@@ -84,9 +84,9 @@ async function runSearchReport(query, progress) {
     if (msg.function_call) {
       name = msg.function_call.name;
       args = JSON.parse(msg.function_call.arguments);
-      progress({ step: `  🤖 模型调用: ${name} ${JSON.stringify(args)}` });
+      progress({ step: ` 模型调用: ${name} ${JSON.stringify(args)}` });
     } else {
-      progress({ step: `⚠️ 模型未返回，回退执行 ${fn}` });
+      progress({ step: `模型未返回，回退执行 ${fn}` });
       name = fn;
       args = { [argKey]: argVal };
     }
@@ -102,7 +102,7 @@ async function runSearchReport(query, progress) {
     await sleep(800);
   }
 
-  progress({ step:'📋 提取前 3 条搜索结果' });
+  progress({ step:' 提取前 3 条搜索结果' });
   await page.waitForSelector('h3');
   const results = await page.$$eval('h3', hs=>
     hs.slice(0,3).map(h3=>{
@@ -114,14 +114,14 @@ async function runSearchReport(query, progress) {
   const pages = [];
   for (const { title, url } of results) {
     if (!url) continue;
-    progress({ step:`➡️ 访问 ${url}` });
+    progress({ step:` 访问 ${url}` });
     await page.goto(url, { waitUntil:'networkidle2' });
     await sleep(1000);
     const snippet = await page.evaluate(()=>document.body.innerText.slice(0,2000));
     pages.push({ title, url, snippet });
   }
 
-  progress({ step:'📝 生成总结报告' });
+  progress({ step:' 生成总结报告' });
   const prompt = pages.map((p,i)=>`【${i+1}】${p.title}\n${p.url}\n${p.snippet}`).join('\n\n');
   const summaryRes = await openai.chat.completions.create({
     model:'gpt-4o',
