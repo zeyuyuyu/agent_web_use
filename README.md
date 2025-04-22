@@ -8,8 +8,8 @@ npm install
 ## Step 2:
 npm start
 
-Open another terminal at Macbook run:
 ## Step 3:
+Open another terminal at Macbook run:
 /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
   --remote-debugging-port=9222 \
   --user-data-dir="$HOME/.chrome‑tars" \
